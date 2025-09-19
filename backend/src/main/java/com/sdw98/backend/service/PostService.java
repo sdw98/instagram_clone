@@ -1,15 +1,34 @@
 package com.sdw98.backend.service;
 
+import com.sdw98.backend.dto.PostRequest;
+import com.sdw98.backend.dto.PostResponse;
+import com.sdw98.backend.entity.Post;
+import com.sdw98.backend.entity.User;
 import com.sdw98.backend.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 @Slf4j
 public class PostService {
 
     private final PostRepository postRepository;
     private final AuthenticationService authenticationService;
+
+    public PostResponse createPost(PostRequest request) {
+        User currentUser = authenticationService.getCurrentUser();
+
+        Post post = Post.builder()
+                .content(request.getContent())
+                .user(currentUser)
+                .deleted(false)
+                .build();
+
+        post = postRepository.save(post);
+        return PostResponse.fromEntity(post);
+    }
 }

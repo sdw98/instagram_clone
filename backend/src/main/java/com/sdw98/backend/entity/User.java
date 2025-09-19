@@ -64,6 +64,7 @@ public class User implements UserDetails {
     private boolean enabled;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Post> posts = new HashSet<>();
 
     @PrePersist

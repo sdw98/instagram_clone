@@ -7,6 +7,8 @@ import com.sdw98.backend.entity.User;
 import com.sdw98.backend.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,5 +32,12 @@ public class PostService {
 
         post = postRepository.save(post);
         return PostResponse.fromEntity(post);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PostResponse> getAllPosts(Pageable pageable) {
+        authenticationService.getCurrentUser();
+        Page<Post> posts = postRepository.findAllActive(pageable);
+        return posts.map(PostResponse::fromEntity);
     }
 }

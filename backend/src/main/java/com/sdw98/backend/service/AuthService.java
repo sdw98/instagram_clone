@@ -1,15 +1,19 @@
 package com.sdw98.backend.service;
 
+import com.sdw98.backend.dto.AuthRequest;
 import com.sdw98.backend.dto.AuthResponse;
 import com.sdw98.backend.dto.RegisterRequest;
 import com.sdw98.backend.dto.UserDto;
 import com.sdw98.backend.entity.AuthProvider;
 import com.sdw98.backend.entity.User;
+import com.sdw98.backend.exception.AuthenticationException;
+import com.sdw98.backend.exception.BadRequestException;
 import com.sdw98.backend.exception.UserAlreadyExistsException;
 import com.sdw98.backend.repository.UserRepository;
 import com.sdw98.backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,5 +53,33 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .user(UserDto.fromEntity(user))
                 .build();
+    }
+
+    public AuthResponse authenticate(AuthRequest request) {
+        try {
+            String loginId = request.getEmail() != null ? request.getEmail() : request.getUsername();
+
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginId,
+                            request.getPassword()
+                    )
+            );
+
+            User user = userRepository.findByEmail(loginId)
+                    .or(() -> userRepository.findByUsername(loginId))
+                    .orElseThrow(() -> new AuthenticationException("Authentication failed"));
+
+            String jwtToken = jwtService.generateToken(user);
+            String refreshToken = jwtService.generateRefreshToken(user);
+
+            return AuthResponse.builder()
+                    .accessToken(jwtToken)
+                    .refreshToken(refreshToken)
+                    .user(UserDto.fromEntity(user))
+                    .build();
+        } catch (BadRequestException e) {
+            throw new AuthenticationException("Invalid email or password");
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.sdw98.backend.controller;
 
+import com.sdw98.backend.dto.AuthRequest;
 import com.sdw98.backend.dto.AuthResponse;
 import com.sdw98.backend.dto.RegisterRequest;
 import com.sdw98.backend.service.AuthService;
@@ -22,5 +23,12 @@ public class AuthController {
             @Valid @RequestBody RegisterRequest request
     ) {
         return ResponseEntity.ok(authService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> authenticate(
+            @Valid @RequestBody AuthRequest request
+    ) {
+        return ResponseEntity.ok(authService.authenticate(request));
     }
 }
